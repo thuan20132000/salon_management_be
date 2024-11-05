@@ -6,7 +6,10 @@ from .views import (
     SkillViewSet,
     NailServiceCategoryViewSet,
     NailServiceViewSet,
-    AppointmentViewSet
+    AppointmentViewSet,
+    CustomerViewSet,
+    AppointmentServiceViewSet
+
 )
 
 router = DefaultRouter()
@@ -16,6 +19,8 @@ router.register(r'skills', SkillViewSet)
 router.register(r'nailservicecategories', NailServiceCategoryViewSet)
 router.register(r'nailservices', NailServiceViewSet)
 router.register(r'appointments', AppointmentViewSet)
+router.register(r'customers', CustomerViewSet)
+router.register(r'appointment-services', AppointmentServiceViewSet)
 
 
 urlpatterns = [
