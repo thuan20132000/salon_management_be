@@ -226,3 +226,8 @@ class PayrollTurn(models.Model):
         # @staticmethod
         # def get_all_payroll_turns_with_employee():
         #     return PayrollTurn.objects.select_related('employee_payroll_turn__employee').all()
+        
+    class Meta:
+        verbose_name = 'Payroll Turn'
+        verbose_name_plural = 'Payroll Turns'
+        unique_together = ['service_name', 'employee_payroll_turn']

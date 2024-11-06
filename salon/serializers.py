@@ -59,6 +59,7 @@ class PayrollTurnSerializer(serializers.ModelSerializer):
     class Meta:
         model = PayrollTurn
         fields = '__all__'
+        depth = 1
 
 
 class EmployeePayrollTurnSerializer(serializers.ModelSerializer):
