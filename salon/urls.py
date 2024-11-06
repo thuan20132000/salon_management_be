@@ -8,7 +8,9 @@ from .views import (
     NailServiceViewSet,
     AppointmentViewSet,
     CustomerViewSet,
-    AppointmentServiceViewSet
+    AppointmentServiceViewSet,
+    EmployeePayrollTurnViewSet,
+    PayrollTurnViewSet
 
 )
 
@@ -21,6 +23,8 @@ router.register(r'nailservices', NailServiceViewSet)
 router.register(r'appointments', AppointmentViewSet)
 router.register(r'customers', CustomerViewSet)
 router.register(r'appointment-services', AppointmentServiceViewSet)
+router.register(r'employee-payroll-turn', EmployeePayrollTurnViewSet)
+router.register(r'payroll-turn', PayrollTurnViewSet)
 
 
 urlpatterns = [

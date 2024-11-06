@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Employee, User, Skill, NailServiceCategory, NailService, Appointment, Customer, AppointmentService
+from .models import (Employee, User, Skill, NailServiceCategory, NailService,
+                     Appointment, Customer, AppointmentService, EmployeePayrollTurn, PayrollTurn)
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -52,3 +53,18 @@ class AppointmentServiceSerializer(serializers.ModelSerializer):
         model = AppointmentService
         fields = '__all__'
         depth = 2
+
+
+class PayrollTurnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PayrollTurn
+        fields = '__all__'
+
+
+class EmployeePayrollTurnSerializer(serializers.ModelSerializer):
+    
+    payroll_turns = PayrollTurnSerializer(many=True, read_only=True)
+    class Meta:
+        model = EmployeePayrollTurn
+        fields = ['id', 'employee', 'date', 'total_price', 'payroll_turns']
+        
