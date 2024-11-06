@@ -205,7 +205,7 @@ class EmployeePayrollTurn(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         unique_together = ['employee', 'date']
 
@@ -214,7 +214,8 @@ class EmployeePayrollTurn(models.Model):
 
 
 class PayrollTurn(models.Model):
-    service_name = models.CharField(max_length=255, blank=True, null=True)
+    service_name = models.CharField(
+        max_length=255, blank=True, null=True)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     employee_payroll_turn = models.ForeignKey(
         EmployeePayrollTurn, on_delete=models.SET_NULL, null=True, related_name='payroll_turns')
@@ -226,8 +227,4 @@ class PayrollTurn(models.Model):
         # @staticmethod
         # def get_all_payroll_turns_with_employee():
         #     return PayrollTurn.objects.select_related('employee_payroll_turn__employee').all()
-        
-    class Meta:
-        verbose_name = 'Payroll Turn'
-        verbose_name_plural = 'Payroll Turns'
-        unique_together = ['service_name', 'employee_payroll_turn']
+
