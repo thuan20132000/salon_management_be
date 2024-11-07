@@ -29,6 +29,17 @@ from rest_framework.decorators import action
 from rest_framework import filters
 from django_filters import rest_framework as django_filters
 
+from rest_framework.reverse import reverse
+from rest_framework.decorators import api_view
+from salon.signals import update_employeee_daily_total_turn_price
+
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'employee': reverse('employee-list', request=request, format=format),
+    })
+
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
@@ -109,8 +120,24 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
         }
 
         return Response(response_data)
+    
+    @action(detail=False, methods=['get'], url_path='daily-turn')
+    def get_daily_turn (self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        # get first record
+        queryset = queryset.first()
+        serializer = self.get_serializer(queryset, many=False)
+        print("Serializer: ", serializer.data)
+        # Prepare the custom response format
+        response_data = {
+            'data': serializer.data,  # The serialized data
+            # Get the total price of all turns
+            # 'total_price': sum([float(turn['total_price']) for turn in serializer.data]),
+        }
 
-    @action(detail=True, methods=['get'])
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['get'],)
     def turns(self, request, pk=None):
         employee_turn = self.get_object()  # Get the employee instance
         # skills = employee.
@@ -124,6 +151,36 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
         # payroll_turns_all = employee_turn.select_related('employee_payroll_turn__employee').all()
         # print("Turns: ", payroll_turns_all)
         return Response({'employee_turn': employee_payroll_turns})
+
+        # Custom action to update a bulk of turns
+    @action(detail=True, methods=['PUT'], url_path='bulk-update-turn', )
+    def bulk_update_turns(self, request, pk=None):
+
+        try:
+            employee_payroll_turn = EmployeePayrollTurn.objects.get(pk=pk)
+            print("Employee Payroll Turn: ", employee_payroll_turn)
+            # return Response({'message': 'Bulk update or create successful!'}, status=status.HTTP_200_OK)
+
+            turns = request.data
+            for turn in turns:
+                if 'id' in turn:
+                    payroll_turn = PayrollTurn.objects.get(id=turn['id'])
+                    if payroll_turn:
+                        payroll_turn.price = turn['price']
+                        payroll_turn.service_name = turn['service_name']
+                        payroll_turn.save()
+                else:
+                    PayrollTurn.objects.create(
+                        price=turn['price'],
+                        service_name=turn['service_name'],
+                        employee_payroll_turn=employee_payroll_turn
+                    )
+
+            update_employeee_daily_total_turn_price(employee_payroll_turn.id)
+
+            return Response({'message': 'Bulk update or create successful!'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': 'Bulk update or create failed!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PayrollTurnFilter(django_filters.FilterSet):
@@ -181,3 +238,30 @@ class PayrollTurnViewSet(viewsets.ModelViewSet):
         }
 
         return Response(response_data)
+
+    # Custom action to update a bulk of turns
+    @action(detail=False, methods=['PUT'], url_path='bulk-update', )
+    def bulk_update(self, request):
+
+        try:
+
+            turns = request.data
+            employee_payroll_turn = EmployeePayrollTurn.objects.get(
+                id=turns[0]['employee_payroll_turn'])
+            for turn in turns:
+                if 'id' in turn:
+                    payroll_turn = PayrollTurn.objects.get(id=turn['id'])
+                    if payroll_turn:
+                        payroll_turn.price = turn['price']
+                        payroll_turn.save()
+                else:
+                    PayrollTurn.objects.create(
+                        price=turn['price'],
+                        employee_payroll_turn=employee_payroll_turn
+                    )
+
+            update_employeee_daily_total_turn_price(employee_payroll_turn.id)
+
+            return Response({'message': 'Bulk update or create successful!'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({'message': 'Bulk update or create failed!'}, status=status.HTTP_400_BAD_REQUEST)

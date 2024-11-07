@@ -56,16 +56,20 @@ class AppointmentServiceSerializer(serializers.ModelSerializer):
 
 
 class PayrollTurnSerializer(serializers.ModelSerializer):
+
+    employee_payroll_turn_id = serializers.CharField(
+        source='employee_payroll_turn.id', read_only=True)
+
     class Meta:
         model = PayrollTurn
         fields = '__all__'
-        depth = 1
+        # depth = 1
 
 
 class EmployeePayrollTurnSerializer(serializers.ModelSerializer):
-    
+
     payroll_turns = PayrollTurnSerializer(many=True, read_only=True)
+
     class Meta:
         model = EmployeePayrollTurn
         fields = ['id', 'employee', 'date', 'total_price', 'payroll_turns']
-        

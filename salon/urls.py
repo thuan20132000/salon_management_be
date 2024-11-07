@@ -10,12 +10,15 @@ from .views import (
     CustomerViewSet,
     AppointmentServiceViewSet,
     EmployeePayrollTurnViewSet,
-    PayrollTurnViewSet
-
+    PayrollTurnViewSet,
+    api_root
 )
 
+from rest_framework.urlpatterns import format_suffix_patterns
+
+
 router = DefaultRouter()
-router.register(r'employees', EmployeeViewSet)
+router.register(r'employees', EmployeeViewSet, )
 router.register(r'users', UserViewSet)
 router.register(r'skills', SkillViewSet)
 router.register(r'nailservicecategories', NailServiceCategoryViewSet)
