@@ -116,7 +116,7 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
             'total': len(queryset),  # Get the total number of turn
             'data': serializer.data,  # The serialized data
             # Get the total price of all turns
-            'total_price': sum([float(turn['total_price']) for turn in serializer.data]),
+            'total_price': sum([float(turn['total_price'] or 0) for turn in serializer.data]),
         }
 
         return Response(response_data)
@@ -127,7 +127,6 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
         # get first record
         queryset = queryset.first()
         serializer = self.get_serializer(queryset, many=False)
-        print("Serializer: ", serializer.data)
         # Prepare the custom response format
         response_data = {
             'data': serializer.data,  # The serialized data
