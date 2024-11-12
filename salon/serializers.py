@@ -73,3 +73,12 @@ class EmployeePayrollTurnSerializer(serializers.ModelSerializer):
     class Meta:
         model = EmployeePayrollTurn
         fields = ['id', 'employee', 'date', 'total_price', 'payroll_turns']
+
+    
+class EmployeePayrollStatisticSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EmployeePayrollTurn
+        fields = ['date', 'total_price']
+        # depth = 1
+        

@@ -11,6 +11,8 @@ from .models import (
     EmployeePayrollTurn,
     PayrollTurn
 )
+from django.db import models
+
 from .serializers import (
     UserSerializer,
     SkillSerializer,
@@ -21,7 +23,8 @@ from .serializers import (
     CustomerSerializer,
     AppointmentServiceSerializer,
     EmployeePayrollTurnSerializer,
-    PayrollTurnSerializer
+    PayrollTurnSerializer,
+    EmployeePayrollStatisticSerializer
 )
 from rest_framework.response import Response
 from rest_framework import status
@@ -92,6 +95,10 @@ class EmployeePayrollTurnFilter(django_filters.FilterSet):
     year = django_filters.NumberFilter(field_name='date', lookup_expr='year')
     month = django_filters.NumberFilter(field_name='date', lookup_expr='month')
     date = django_filters.CharFilter(field_name='date')
+    date_range = django_filters.DateFromToRangeFilter(field_name='date')
+    # start_date = django_filters.DateFromToRangeFilter( field_name='date')
+    # end_date = django_filters.DateFromToRangeFilter(
+    #     field_name='date', lookup_expr='lte')
 
     class Meta:
         model = EmployeePayrollTurn
@@ -120,9 +127,29 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
         }
 
         return Response(response_data)
-    
+
+    # Custom action to get employee's statistic by date range
+    @action(detail=False, methods=['get'], url_path='statistics')
+    def get_statistic(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        # sum all total_price
+        sum_total_price = queryset.aggregate(
+            total_price=models.Sum('total_price'))['total_price'] or 0
+
+        serializer = EmployeePayrollStatisticSerializer(queryset, many=True)
+
+        # Prepare the custom response format
+        response_data = {
+            'data': serializer.data,  # The serialized data
+            'date_range_after': request.query_params.get('date_range_after'),
+            'date_range_before': request.query_params.get('date_range_before'),
+            'total_price': sum_total_price
+        }
+
+        return Response(response_data)
+
     @action(detail=False, methods=['get'], url_path='daily-turn')
-    def get_daily_turn (self, request, *args, **kwargs):
+    def get_daily_turn(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         # get first record
         queryset = queryset.first()
@@ -180,6 +207,22 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
             return Response({'message': 'Bulk update or create successful!'}, status=status.HTTP_200_OK)
         except Exception as e:
             return Response({'message': 'Bulk update or create failed!'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Custom action to make employee's statistic by date range
+    # @action(detail=False, methods=['get'], url_path='statistic')
+    # def statistic(self, request):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+
+    #     # Prepare the custom response format
+    #     response_data = {
+    #         'total': len(queryset),  # Get the total number of turn
+    #         # Get the total price of all turns
+    #         'total_price': sum([float(turn['total_price'] or 0) for turn in serializer.data]),
+    #         'data': serializer.data,  # The serialized data
+    #     }
+
+    #     return Response(response_data)
 
 
 class PayrollTurnFilter(django_filters.FilterSet):
