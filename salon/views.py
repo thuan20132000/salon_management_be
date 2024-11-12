@@ -117,13 +117,15 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
+        total_price = queryset.aggregate(
+            total_price=models.Sum('total_price'))['total_price'] or 0
 
         # Prepare the custom response format
         response_data = {
             'total': len(queryset),  # Get the total number of turn
             'data': serializer.data,  # The serialized data
             # Get the total price of all turns
-            'total_price': sum([float(turn['total_price'] or 0) for turn in serializer.data]),
+            'total_price': total_price,
         }
 
         return Response(response_data)
