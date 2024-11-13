@@ -9,7 +9,8 @@ from .models import (
     Skill,
     AppointmentService,
     EmployeePayrollTurn,
-    PayrollTurn
+    PayrollTurn,
+    EmployeePayslips
 )
 # Register your models here.
 from django.contrib import admin
@@ -66,4 +67,8 @@ class EmployeePayrollTurnAdmin(admin.ModelAdmin):
 
 @admin.register(PayrollTurn)
 class PayrollTurnAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(EmployeePayslips)
+class EmployeePayslipsAdmin(admin.ModelAdmin):
     pass

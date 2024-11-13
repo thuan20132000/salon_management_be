@@ -11,7 +11,7 @@ from .views import (
     AppointmentServiceViewSet,
     EmployeePayrollTurnViewSet,
     PayrollTurnViewSet,
-    api_root
+    EmployeePayslipsViewSet
 )
 
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -28,6 +28,7 @@ router.register(r'customers', CustomerViewSet)
 router.register(r'appointment-services', AppointmentServiceViewSet)
 router.register(r'employee-payroll-turn', EmployeePayrollTurnViewSet)
 router.register(r'payroll-turn', PayrollTurnViewSet)
+router.register(r'employee-payslips', EmployeePayslipsViewSet)
 
 
 urlpatterns = [

@@ -1,6 +1,17 @@
 from rest_framework import serializers
-from .models import (Employee, User, Skill, NailServiceCategory, NailService,
-                     Appointment, Customer, AppointmentService, EmployeePayrollTurn, PayrollTurn)
+from .models import (
+    Employee,
+    User,
+    Skill,
+    NailServiceCategory,
+    NailService,
+    Appointment,
+    Customer,
+    AppointmentService,
+    EmployeePayrollTurn,
+    PayrollTurn,
+    EmployeePayslips
+)
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -74,11 +85,19 @@ class EmployeePayrollTurnSerializer(serializers.ModelSerializer):
         model = EmployeePayrollTurn
         fields = ['id', 'employee', 'date', 'total_price', 'payroll_turns']
 
-    
+
 class EmployeePayrollStatisticSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = EmployeePayrollTurn
         fields = ['date', 'total_price']
         # depth = 1
-        
+
+class EmployeePayslipsSerializer(serializers.ModelSerializer):
+    
+    gross_pay = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    net_pay = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    class Meta:
+        model = EmployeePayslips
+        fields = '__all__'
+        depth = 1
