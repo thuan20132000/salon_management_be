@@ -13,6 +13,9 @@ from .models import (
     EmployeePayslips
 )
 from django.db import models
+from django.db.models import F, Sum, DecimalField, FloatField
+from decimal import Decimal
+from django.db.models.functions import Round, Greatest
 
 from .serializers import (
     UserSerializer,
@@ -26,7 +29,8 @@ from .serializers import (
     EmployeePayrollTurnSerializer,
     PayrollTurnSerializer,
     EmployeePayrollStatisticSerializer,
-    EmployeePayslipsSerializer
+    EmployeePayslipsSerializer,
+    EmployeePayrollSalarySerializer
 )
 from rest_framework.response import Response
 from rest_framework import status
@@ -213,21 +217,42 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
         except Exception as e:
             return Response({'message': 'Bulk update or create failed!'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # Custom action to make employee's statistic by date range
-    # @action(detail=False, methods=['get'], url_path='statistic')
-    # def statistic(self, request):
-    #     queryset = self.filter_queryset(self.get_queryset())
-    #     serializer = self.get_serializer(queryset, many=True)
+    # show employee income by date range
 
-    #     # Prepare the custom response format
-    #     response_data = {
-    #         'total': len(queryset),  # Get the total number of turn
-    #         # Get the total price of all turns
-    #         'total_price': sum([float(turn['total_price'] or 0) for turn in serializer.data]),
-    #         'data': serializer.data,  # The serialized data
-    #     }
+    @action(detail=False, methods=['GET'], url_path='income')
+    def show_income(self, request, pk=None):
+        try:
+            start_date = request.query_params.get('start_date')
+            end_date = request.query_params.get('end_date')
+            employee_ids = request.query_params.get('employee_ids')
+            employee_ids = employee_ids.split(",")
 
-    #     return Response(response_data)
+            queryset = EmployeePayrollTurn.objects.filter(
+                employee_id__in=employee_ids, date__range=[start_date, end_date]).values(
+                'employee_id',
+                'employee__commission_rate',
+                'employee__name',
+            )
+
+            queryset = queryset.annotate(
+                gross_pay=Round(
+                    Sum(F('total_price'), output_field=FloatField()), precision=2),
+                net_pay=Round(Sum(F('total_price'), output_field=FloatField(
+                )) * F('employee__commission_rate'), precision=2, output_field=FloatField()),
+            )
+
+            queryset = list(queryset)
+            print("Queryset: ", queryset)
+            serilizers = EmployeePayrollSalarySerializer(
+                data=queryset, many=True)
+            if serilizers.is_valid():
+                return Response(serilizers.data, status=status.HTTP_200_OK)
+            else:
+                return Response(serilizers.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            print("Error: ", e)
+            return Response({'message': 'Income calculation failed!'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class PayrollTurnFilter(django_filters.FilterSet):

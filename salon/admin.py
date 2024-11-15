@@ -23,7 +23,7 @@ class CustomerAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    pass
+    fields = ('phone_number','commission_rate')
 
 
 @admin.register(NailService)

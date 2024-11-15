@@ -79,6 +79,7 @@ class Employee(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     skills = models.ManyToManyField(
         Skill, related_name='employees', blank=True)
+    commission_rate = models.FloatField(default=0.6)
 
     # def save(self, *args, **kwargs):
     #     if not self.user.password:  # Check if the user does not have a password
@@ -202,8 +203,7 @@ class EmployeePayrollTurn(models.Model):
         null=True,
     )
     date = models.DateField()
-    total_price = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0, blank=True,)
+    total_price = models.FloatField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

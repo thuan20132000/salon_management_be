@@ -86,6 +86,25 @@ class EmployeePayrollTurnSerializer(serializers.ModelSerializer):
         fields = ['id', 'employee', 'date', 'total_price', 'payroll_turns']
 
 
+class EmployeePayrollSalarySerializer(serializers.Serializer):
+    employee_id = serializers.CharField(required=False)
+    employee__name = serializers.CharField(required=False)
+    total_income = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False)
+    total_deduction = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False)
+    net_pay = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False)
+    gross_pay = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False)
+    pay_period_start = serializers.DateField(required=False)
+    pay_period_end = serializers.DateField(required=False)
+    employee__commission_rate = serializers.DecimalField(
+        max_digits=5, decimal_places=2, required=False)
+    total_tip = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False)
+    
+    
 class EmployeePayrollStatisticSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -93,10 +112,14 @@ class EmployeePayrollStatisticSerializer(serializers.ModelSerializer):
         fields = ['date', 'total_price']
         # depth = 1
 
+
 class EmployeePayslipsSerializer(serializers.ModelSerializer):
-    
-    gross_pay = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    net_pay = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    gross_pay = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True)
+    net_pay = serializers.DecimalField(
+        max_digits=10, decimal_places=2, read_only=True)
+
     class Meta:
         model = EmployeePayslips
         fields = '__all__'
