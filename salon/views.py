@@ -42,7 +42,10 @@ from rest_framework.reverse import reverse
 from rest_framework.decorators import api_view
 from salon.signals import update_employeee_daily_total_turn_price
 from salon.enums import EmployeeShareEnum
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.authentication import TokenAuthentication
 
+from rest_framework import permissions
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -52,8 +55,12 @@ def api_root(request, format=None):
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
+    
+
+    permission_classes = [permissions.IsAuthenticated]
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -62,6 +69,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
 
 class SkillViewSet(viewsets.ModelViewSet):
+    
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
 
@@ -113,6 +121,8 @@ class EmployeePayrollTurnFilter(django_filters.FilterSet):
 
 
 class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
+    
+    permission_classes = [permissions.IsAuthenticated]
     queryset = EmployeePayrollTurn.objects.all()
     serializer_class = EmployeePayrollTurnSerializer
 
@@ -222,6 +232,9 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['GET'], url_path='income')
     def show_income(self, request, pk=None):
         try:
+            auth = request.user
+            print("USER AUTH: ", auth)
+            
             start_date = request.query_params.get('start_date')
             end_date = request.query_params.get('end_date')
             employee_ids = request.query_params.get('employee_ids')
@@ -242,7 +255,6 @@ class EmployeePayrollTurnViewSet(viewsets.ModelViewSet):
             )
 
             queryset = list(queryset)
-            print("Queryset: ", queryset)
             serilizers = EmployeePayrollSalarySerializer(
                 data=queryset, many=True)
             if serilizers.is_valid():
@@ -276,6 +288,9 @@ class PayrollTurnFilter(django_filters.FilterSet):
 
 
 class PayrollTurnViewSet(viewsets.ModelViewSet):
+    
+    permission_classes = [permissions.IsAuthenticated]
+    
     queryset = PayrollTurn.objects.all()
     serializer_class = PayrollTurnSerializer
 

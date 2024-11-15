@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-_mx!8y!k%nm-2w1+=yq6ez=d3kd-3t(qh@e-4gagk-e$m%bg-^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 CORS_ALLOW_ALL_ORIGINS = True
 
@@ -49,7 +49,8 @@ INSTALLED_APPS = [
     # 'django_extensions',
     'rest_framework',
     'corsheaders',
-    'django_filters'
+    'django_filters',
+    'rest_framework_simplejwt'
 
 ]
 
@@ -64,6 +65,31 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
 ]
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'PAGE_SIZE': 10
+}
+
+
+
+# SIMPLE_JWT = {
+#     # 'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+#     # 'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+#     'ROTATE_REFRESH_TOKENS': False,
+#     'BLACKLIST_AFTER_ROTATION': True,
+#     'ALGORITHM': 'HS256',
+#     'SIGNING_KEY': SECRET_KEY,
+#     'VERIFYING_KEY': None,
+#     'AUTH_HEADER_TYPES': ('Bearer',),
+#     'USER_ID_FIELD': 'id',
+#     'USER_ID_CLAIM': 'user_id',
+#     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
+#     'TOKEN_TYPE_CLAIM': 'token_type',
+# }
 
 ROOT_URLCONF = 'salon_management.urls'
 
