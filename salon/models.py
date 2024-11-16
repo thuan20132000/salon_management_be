@@ -164,8 +164,7 @@ class Appointment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     start_at = models.DateTimeField(default=timezone.now)
-    end_at = models.DateTimeField(
-        default=timezone.now() + timedelta(minutes=30))
+    end_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"Appointment for {self.customer} on {self.start_at}"
