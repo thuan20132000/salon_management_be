@@ -1,10 +1,12 @@
 # Create your models here.
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser, Group, Permission
+from django.contrib.auth.models import AbstractUser, Group, Permission, User as UserModel
 from django.utils.crypto import get_random_string
 from datetime import timedelta
 from django.db.models import Sum
+
+# 1. Salon model
 
 
 class User(AbstractUser):
@@ -24,6 +26,17 @@ class User(AbstractUser):
         help_text='Specific permissions for this user.',
         related_query_name='salon_user_permissions',
     )
+
+
+class Salon(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    address = models.TextField(unique=True, blank=True, null=True)
+    phone = models.CharField(max_length=15, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
+    owner = models.OneToOneField(UserModel, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return "Salon: " + self.name
 
 
 class Skill(models.Model):
@@ -80,6 +93,8 @@ class Employee(models.Model):
     skills = models.ManyToManyField(
         Skill, related_name='employees', blank=True)
     commission_rate = models.FloatField(default=0.6)
+    salon = models.ForeignKey(
+        Salon, on_delete=models.SET_NULL, null=True, blank=True)
 
     # def save(self, *args, **kwargs):
     #     if not self.user.password:  # Check if the user does not have a password
@@ -90,7 +105,7 @@ class Employee(models.Model):
     #     super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.name} - {self.job_title}"
+        return f"{self.name} in {self.salon}"
 
     class Meta:
         verbose_name = 'Employee'
@@ -99,10 +114,13 @@ class Employee(models.Model):
 
 class Customer(models.Model):
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, null=True, blank=True)
     name = models.CharField(max_length=50)
     phone_number = models.CharField(max_length=15, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    salons = models.ManyToManyField(
+        Salon, related_name='customers', blank=True)
 
     def __str__(self):
         return f"{self.name} - {self.phone_number}"
@@ -112,6 +130,19 @@ class Customer(models.Model):
         verbose_name_plural = 'Customers'
 
 
+class CustomerSalon(models.Model):
+    customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+    salon = models.ForeignKey(Salon, on_delete=models.CASCADE)
+    first_visit_date = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.customer} - {self.salon}"
+
+    class Meta:
+        verbose_name = 'CustomerSalon'
+        verbose_name_plural = 'CustomerSalons'
+
+
 class NailServiceCategory(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
@@ -119,6 +150,8 @@ class NailServiceCategory(models.Model):
     is_check_in = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    salon = models.ForeignKey(
+        Salon, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -136,9 +169,11 @@ class NailService(models.Model):
         NailServiceCategory, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    salon = models.ForeignKey(
+        Salon, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f"{self.name} - salon: {self.salon}"
 
 
 class Appointment(models.Model):
@@ -154,10 +189,10 @@ class Appointment(models.Model):
         help_text="Duration in minutes", blank=True, null=True)
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS, default='Pending')
-    services = models.ManyToManyField(NailService)
+    # services = models.ManyToManyField(NailService)
+    # employee = models.ForeignKey(
+    #     Employee, on_delete=models.SET_NULL, null=True, blank=True)
     type = models.CharField(max_length=50, blank=True, null=True)
-    employee = models.ForeignKey(
-        Employee, on_delete=models.SET_NULL, null=True, blank=True)
     customer = models.ForeignKey(
         Customer, on_delete=models.SET_NULL, null=True, blank=True)
     note = models.TextField(blank=True, null=True)
@@ -165,6 +200,8 @@ class Appointment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     start_at = models.DateTimeField(default=timezone.now)
     end_at = models.DateTimeField(default=timezone.now)
+    salon = models.ForeignKey(
+        Salon, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"Appointment for {self.customer} on {self.start_at}"
@@ -193,6 +230,39 @@ class AppointmentService(models.Model):
 
     def __str__(self):
         return f"{self.appointment} - {self.service} - {self.employee} - {self.start_at}"
+
+
+class Payment(models.Model):
+    PAYMENT_METHODS = [
+        ('1', 'Cash'),
+        ('2', 'Credit Card'),
+        ('3', 'Debit Card'),
+        ('4', 'Paypal'),
+        ('5', 'Venmo'),
+        ('6', 'Zelle'),
+        ('7', 'Cash App'),
+        ('8', 'Apple Pay'),
+        ('9', 'Google Pay'),
+    ]
+
+    PAYMENT_STATUS = [
+        ('1', 'Pending'),
+        ('2', 'Paid'),
+        ('3', 'Cancelled'),
+    ]
+
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    method = models.CharField(
+        max_length=50, choices=PAYMENT_METHODS, default='Cash')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    appointment = models.OneToOneField(
+        Appointment, on_delete=models.SET_NULL, null=True)
+    status = models.CharField(
+        max_length=50, choices=PAYMENT_STATUS, default='Pending')
+
+    def __str__(self):
+        return f"Payment of {self.amount} - {self.method} - {self.appointment} - {self.status}"
 
 
 class EmployeePayrollTurn(models.Model):

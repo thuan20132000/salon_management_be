@@ -10,7 +10,11 @@ from .models import (
     AppointmentService,
     EmployeePayrollTurn,
     PayrollTurn,
-    EmployeePayslips
+    EmployeePayslips,
+    Salon,
+    CustomerSalon,
+    Payment,
+    
 )
 # Register your models here.
 from django.contrib import admin
@@ -23,7 +27,9 @@ class CustomerAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    fields = ('phone_number','commission_rate')
+    # fields = ('phone_number','commission_rate')
+    exclude = ('user',)
+    pass
 
 
 @admin.register(NailService)
@@ -31,8 +37,15 @@ class NailServiceAdmin(admin.ModelAdmin):
     pass
 
 
+class ApointmentServiceInline(admin.TabularInline):
+    model = AppointmentService
+    extra = 1
+    
+    # filter and display selection of services from appointment's salon_id
+
 @admin.register(Appointment)
 class AppointmentAdmin(admin.ModelAdmin):
+    inlines = [ApointmentServiceInline]
     pass
 
 
@@ -71,4 +84,26 @@ class PayrollTurnAdmin(admin.ModelAdmin):
 
 @admin.register(EmployeePayslips)
 class EmployeePayslipsAdmin(admin.ModelAdmin):
+    pass
+
+class CustomerSalonInline(admin.TabularInline):
+    model = CustomerSalon
+    extra = 0
+
+class EmployeeSalonInline(admin.TabularInline):
+    model = Employee
+    extra = 0
+    fields = ('phone_number','commission_rate','name')
+
+@admin.register(Salon)
+class SalonAdmin(admin.ModelAdmin):
+    inlines = [CustomerSalonInline, EmployeeSalonInline]
+    pass
+    
+@admin.register(CustomerSalon)
+class CustomerSalonAdmin(admin.ModelAdmin):
+    pass
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
     pass
