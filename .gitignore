@@ -106,3 +106,5 @@ coverage.xml
 # Windows
 Thumbs.db
 ehthumbs.db
+
+salon_management/settings/local.py

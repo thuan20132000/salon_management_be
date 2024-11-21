@@ -154,7 +154,7 @@ class NailServiceCategory(models.Model):
         Salon, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return self.name
+        return f'{self.name} - salon: {self.salon}'
 
 
 class NailService(models.Model):
@@ -166,7 +166,7 @@ class NailService(models.Model):
     image = models.ImageField(
         upload_to='nail_services/', blank=True, null=True)
     category = models.ForeignKey(
-        NailServiceCategory, on_delete=models.SET_NULL, null=True, blank=True)
+        NailServiceCategory, on_delete=models.SET_NULL, null=True, blank=True, related_name='nail_services')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     salon = models.ForeignKey(

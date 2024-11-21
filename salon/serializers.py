@@ -10,8 +10,15 @@ from .models import (
     AppointmentService,
     EmployeePayrollTurn,
     PayrollTurn,
-    EmployeePayslips
+    EmployeePayslips,
+    Salon
 )
+
+class SalonSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Salon
+        fields = '__all__'
+
 
 
 class EmployeeSerializer(serializers.ModelSerializer):
@@ -34,9 +41,16 @@ class SkillSerializer(serializers.ModelSerializer):
 
 
 class NailServiceCategorySerializer(serializers.ModelSerializer):
+    
+    nail_services = serializers.SerializerMethodField()
+    
     class Meta:
         model = NailServiceCategory
         fields = '__all__'
+        
+    def get_nail_services(self, obj):
+        nail_services = obj.nail_services.all()
+        return NailServiceSerializer(nail_services, many=True).data
 
 
 class NailServiceSerializer(serializers.ModelSerializer):

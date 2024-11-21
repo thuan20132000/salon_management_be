@@ -6,7 +6,8 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'salon_management.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'salon_management.settings.local' if os.getenv(
+        "DJANGO_ENV") == "local" else 'salon_management.settings.production')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

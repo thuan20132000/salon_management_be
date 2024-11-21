@@ -11,7 +11,8 @@ from .views import (
     AppointmentServiceViewSet,
     EmployeePayrollTurnViewSet,
     PayrollTurnViewSet,
-    EmployeePayslipsViewSet
+    EmployeePayslipsViewSet,
+    SalonViewSet
 )
 
 from rest_framework.urlpatterns import format_suffix_patterns
@@ -24,7 +25,7 @@ from rest_framework_simplejwt.views import TokenVerifyView
 
 router = DefaultRouter()
 
-router.register(r'employees', EmployeeViewSet, )
+router.register(r'employees', EmployeeViewSet)
 router.register(r'users', UserViewSet)
 router.register(r'skills', SkillViewSet)
 router.register(r'nailservicecategories', NailServiceCategoryViewSet)
@@ -35,6 +36,7 @@ router.register(r'appointment-services', AppointmentServiceViewSet)
 router.register(r'employee-payroll-turn', EmployeePayrollTurnViewSet)
 router.register(r'payroll-turn', PayrollTurnViewSet)
 router.register(r'employee-payslips', EmployeePayslipsViewSet)
+router.register(r'salons', SalonViewSet)
 
 
 urlpatterns = [
