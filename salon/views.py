@@ -1,3 +1,5 @@
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework import viewsets
 from .models import (
     Employee,
@@ -49,6 +51,7 @@ from rest_framework.authentication import TokenAuthentication
 
 from rest_framework import permissions
 
+import time
 
 @api_view(['GET'])
 def api_root(request, format=None):
@@ -56,30 +59,71 @@ def api_root(request, format=None):
         'employee': reverse('employee-list', request=request, format=format),
     })
 
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+        # Add custom claims
+        token['email'] = user.email
+        token['username'] = user.username
+        return token
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = serializer.user
+        response = super().post(request, *args, **kwargs)
+
+        response.data['user'] = {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name,
+        }
+        return response
+
+
 class EmployeeFilter(django_filters.FilterSet):
     # Example of filtering by position
     # hire_date = django_filters.DateFilter(field_name='hire_date')  # Filter by exact hire date
     # is_active = django_filters.BooleanFilter(field_name='user__is_active')  # Filter based on user's active status
-    name = django_filters.CharFilter(field_name='name')  # Filter by employee's name
+    name = django_filters.CharFilter(
+        field_name='name')  # Filter by employee's name
     phone_number = django_filters.CharFilter(
         field_name='phone_number')  # Filter by employee's phone number
-    email = django_filters.CharFilter(field_name='email')  # Filter by employee's email
-    position = django_filters.CharFilter(field_name='position')  # Filter by employee's position
-    user = django_filters.CharFilter(field_name='user')  # Filter by employee's id
-    salon = django_filters.CharFilter(field_name='salon')  # Filter by salon's id
+    email = django_filters.CharFilter(
+        field_name='email')  # Filter by employee's email
+    position = django_filters.CharFilter(
+        field_name='position')  # Filter by employee's position
+    user = django_filters.CharFilter(
+        field_name='user')  # Filter by employee's id
+    salon = django_filters.CharFilter(
+        field_name='salon')  # Filter by salon's id
+
     class Meta:
         model = Employee
         fields = ['name', 'phone_number', 'email',
                   'position', 'user']  # List of fields to filter on
+
 
 class EmployeeViewSet(viewsets.ModelViewSet):
 
     # permission_classes = [permissions.IsAuthenticated]
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    
+
     filter_backends = (django_filters.DjangoFilterBackend,
-                          filters.OrderingFilter)
+                       filters.OrderingFilter)
     filterset_class = EmployeeFilter
 
 
@@ -95,60 +139,73 @@ class SkillViewSet(viewsets.ModelViewSet):
 
 
 class NailServiceCategoryFilter(django_filters.FilterSet):
-    salon = django_filters.CharFilter(field_name='salon')  # Filter by salon's id
-    
+    salon = django_filters.CharFilter(
+        field_name='salon')  # Filter by salon's id
+
+
 class NailServiceCategoryViewSet(viewsets.ModelViewSet):
     queryset = NailServiceCategory.objects.all()
     serializer_class = NailServiceCategorySerializer
     filter_backends = (django_filters.DjangoFilterBackend,
-                          filters.OrderingFilter)
+                       filters.OrderingFilter)
     filterset_class = NailServiceCategoryFilter
 
 
 class NailServiceFilter(django_filters.FilterSet):
-    category = django_filters.CharFilter(field_name='category')  # Filter by category's id
-    salon = django_filters.CharFilter(field_name='salon')  # Filter by salon's id
-    
+    category = django_filters.CharFilter(
+        field_name='category')  # Filter by category's id
+    salon = django_filters.CharFilter(
+        field_name='salon')  # Filter by salon's id
+
+
 class NailServiceViewSet(viewsets.ModelViewSet):
     queryset = NailService.objects.all()
     serializer_class = NailServiceSerializer
     filter_backends = (django_filters.DjangoFilterBackend,
-                            filters.OrderingFilter)
+                       filters.OrderingFilter)
     filterset_class = NailServiceFilter
 
 
 class AppointmentFilter(django_filters.FilterSet):
-    customer = django_filters.CharFilter(field_name='customer')  # Filter by customer's id
-    employee = django_filters.CharFilter(field_name='employee')  # Filter by employee's id
+    customer = django_filters.CharFilter(
+        field_name='customer')  # Filter by customer's id
+    employee = django_filters.CharFilter(
+        field_name='employee')  # Filter by employee's id
     date = django_filters.DateFilter(field_name='date')  # Filter by date
-    salon = django_filters.CharFilter(field_name='salon')  # Filter by salon's id
-    
+    salon = django_filters.CharFilter(
+        field_name='salon')  # Filter by salon's id
+
+
 class AppointmentViewSet(viewsets.ModelViewSet):
     queryset = Appointment.objects.all()
     serializer_class = AppointmentSerializer
     filter_backends = (django_filters.DjangoFilterBackend,
-                            filters.OrderingFilter)
+                       filters.OrderingFilter)
     filterset_class = AppointmentFilter
 
 
 class CustomerFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(field_name='name')  # Filter by customer's name
+    name = django_filters.CharFilter(
+        field_name='name')  # Filter by customer's name
     phone_number = django_filters.CharFilter(
         field_name='phone_number')  # Filter by customer's phone number
-    email = django_filters.CharFilter(field_name='email')  # Filter by customer's email
-    user = django_filters.CharFilter(field_name='user')  # Filter by customer's id
-    
-    # filter customer by salon_id 
-    salon = django_filters.CharFilter(field_name='customersalon__salon_id')  # Filter by salon's id
-    
+    email = django_filters.CharFilter(
+        field_name='email')  # Filter by customer's email
+    user = django_filters.CharFilter(
+        field_name='user')  # Filter by customer's id
+
+    # filter customer by salon_id
+    salon = django_filters.CharFilter(
+        field_name='customersalon__salon_id')  # Filter by salon's id
+
+
 class CustomerViewSet(viewsets.ModelViewSet):
     queryset = Customer.objects.all()
     serializer_class = CustomerSerializer
     filter_backends = (django_filters.DjangoFilterBackend,
-                            filters.OrderingFilter)
+                       filters.OrderingFilter)
     filterset_class = CustomerFilter
-    
-    
+
 
 class AppointmentServiceViewSet(viewsets.ModelViewSet):
     queryset = AppointmentService.objects.all()
@@ -516,40 +573,75 @@ class EmployeePayslipsViewSet(viewsets.ModelViewSet):
 
 
 class SalonViewSet(viewsets.ModelViewSet):
-    
-    permission_classes = [permissions.IsAuthenticated]
+
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = Salon.objects.all()
     serializer_class = SalonSerializer
-    
-    
+
     @action(detail=True, methods=['get'], url_path='employees')
     def get_employees_by_salon(self, request, pk=None):
         salon = self.get_object()  # Get the salon instance
         employees = salon.employee_set.all()
         employees = EmployeeSerializer(employees, many=True).data
         return Response({'employees': employees})
-    
+
     @action(detail=True, methods=['get'], url_path='nail-services')
     def get_nail_services(self, request, pk=None):
         salon = self.get_object()  # Get the salon instance
         nail_services = salon.nailservice_set.all()
         nail_services = NailServiceSerializer(nail_services, many=True).data
         return Response({'nail_services': nail_services})
-    
+
     @action(detail=True, methods=['get'], url_path='nail-service-categories')
     def get_nail_service_categories(self, request, pk=None):
+        print("Get Nail Service Categories")
         salon = self.get_object()
         nail_service_categories = salon.nailservicecategory_set.all()
-        nail_service_categories = NailServiceCategorySerializer(nail_service_categories, many=True).data
-        return Response({'nail_service_categories': nail_service_categories})
-    
+        nail_service_categories = NailServiceCategorySerializer(
+            nail_service_categories, many=True).data
+        return Response(nail_service_categories)
+
+    @action(detail=True, methods=['post'], url_path='nail-service-category')
+    def create_nail_service_category(self, request, pk=None):
+        data = request.data.copy()
+        data['salon'] = pk
+        serializer = NailServiceCategorySerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['put'], url_path='nail-service-category/(?P<category_id>\d+)/update')
+    def update_nail_service_category(self, request, pk=None, category_id=None):
+        data = request.data.copy()
+
+        instance = NailServiceCategory.objects.get(pk=category_id)
+
+        serializer = NailServiceCategorySerializer(instance, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['delete'], url_path='nail-service-category/(?P<category_id>\d+)/delete')
+    def delete_nail_service_category(self, request, pk=None, category_id=None):
+        try:
+            # comment: 
+            instance = NailServiceCategory.objects.get(pk=category_id)
+            instance.delete()
+            return Response({'message': 'Category deleted successfully!'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            raise e
+        # end try
+
     @action(detail=True, methods=['get'], url_path='appointments')
     def get_appointments(self, request, pk=None):
         salon = self.get_object()  # Get the salon instance
         appointments = salon.appointment_set.all()
         appointments = AppointmentSerializer(appointments, many=True).data
         return Response({'appointments': appointments})
-    
+
     @action(detail=True, methods=['get'], url_path='customers')
     def get_customers(self, request, pk=None):
         salon = self.get_object()  # Get the salon instance

@@ -12,13 +12,15 @@ from .views import (
     EmployeePayrollTurnViewSet,
     PayrollTurnViewSet,
     EmployeePayslipsViewSet,
-    SalonViewSet
+    SalonViewSet,
+    CustomTokenObtainPairView
 )
 
 from rest_framework.urlpatterns import format_suffix_patterns
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    
 )
 from rest_framework_simplejwt.views import TokenVerifyView
 
@@ -41,7 +43,7 @@ router.register(r'salons', SalonViewSet)
 
 urlpatterns = [
     path('api/', include(router.urls)),
-    path('api/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify'),
 
