@@ -78,6 +78,7 @@ class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True)
     nickname = models.CharField(max_length=50)
     name = models.CharField(max_length=50)
+    email = models.EmailField(blank=True, null=True)
     phone_number = models.CharField(max_length=15, unique=True)
     level = models.ForeignKey(
         UserLevel, on_delete=models.SET_NULL, null=True, blank=True)
@@ -94,7 +95,7 @@ class Employee(models.Model):
         Skill, related_name='employees', blank=True)
     commission_rate = models.FloatField(default=0.6)
     salon = models.ForeignKey(
-        Salon, on_delete=models.SET_NULL, null=True, blank=True)
+        Salon, on_delete=models.SET_NULL, null=True, blank=True, related_name='employees')
 
     # def save(self, *args, **kwargs):
     #     if not self.user.password:  # Check if the user does not have a password

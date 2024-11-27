@@ -592,6 +592,40 @@ class SalonViewSet(viewsets.ModelViewSet):
         nail_services = NailServiceSerializer(nail_services, many=True).data
         return Response({'nail_services': nail_services})
 
+    @action(detail=True, methods=['post'], url_path='nail-service')
+    def create_nail_service(self, request, pk=None):
+        data = request.data.copy()
+        data['salon'] = pk
+        serializer = NailServiceSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['put'], url_path='nail-service/(?P<service_id>\d+)/update')
+    def update_nail_service(self, request, pk=None, service_id=None):
+        data = request.data.copy()
+
+        instance = NailService.objects.get(pk=service_id)
+
+        serializer = NailServiceSerializer(instance, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['delete'], url_path='nail-service/(?P<service_id>\d+)/delete')
+    def delete_nail_service(self, request, pk=None, service_id=None):
+        try:
+            # comment: 
+            instance = NailService.objects.get(pk=service_id)
+            instance.delete()
+            return Response({'message': 'Service deleted successfully!'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            raise e
+        # end try
+    
     @action(detail=True, methods=['get'], url_path='nail-service-categories')
     def get_nail_service_categories(self, request, pk=None):
         print("Get Nail Service Categories")
@@ -648,3 +682,51 @@ class SalonViewSet(viewsets.ModelViewSet):
         customers = salon.customers.all()
         customers = CustomerSerializer(customers, many=True).data
         return Response({'customers': customers})
+
+    @action(detail=True, methods=['get'], url_path='employees')
+    def get_employees(self, request, pk=None):
+        salon = self.get_object()  # Get the salon instance
+        employees = salon.employees.all()
+        employees_serializer = EmployeeSerializer(employees, many=True).data
+        return Response(employees_serializer)
+    
+    @action(detail=True, methods=['post'], url_path='employee')
+    def create_employee(self, request, pk=None):
+        data = request.data.copy()
+        data['salon'] = pk
+        serializer = EmployeeSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['put'], url_path='employee/(?P<employee_id>\d+)/update')
+    def update_employee(self, request, pk=None, employee_id=None):
+        data = request.data.copy()
+
+        instance = Employee.objects.get(pk=employee_id)
+
+        serializer = EmployeeSerializer(instance, data=data)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=True, methods=['delete'], url_path='employee/(?P<employee_id>\d+)/delete')
+    def delete_employee(self, request, pk=None, employee_id=None):
+        try:
+            # comment: 
+            instance = Employee.objects.get(pk=employee_id)
+            instance.delete()
+            return Response({'message': 'Employee deleted successfully!'}, status=status.HTTP_200_OK)
+        except Exception as e:
+            raise e
+        # end try
+        
+    @action(detail=True, methods=['get'], url_path='employee/(?P<employee_id>\d+)')
+    def get_employee(self, request, pk=None, employee_id=None):
+        salon = self.get_object()  # Get the salon instance
+        employee = salon.employees.get(pk=employee_id)
+        employee_serializer = EmployeeSerializer(employee).data
+        return Response(employee_serializer)
